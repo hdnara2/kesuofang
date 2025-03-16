@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>滚动与缩放的图片浏览</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            width: 100vw;
+        }
+
+        .split {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .top, .bottom {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        .content {
+            padding: 0;
+            font-size: 1em;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        .image-container {
+            padding: 0;
+            margin: 0;
+        }
+
+        .image {
+            display: block;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 0.1s ease-out;
+            margin: 0;
+        }
+
+        .slider-container {
+            position: fixed;
+            width: 90%;
+            max-width: 500px;
+            padding: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .slider-bottom {
+            bottom: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="split">
+        <!-- 上半部分：文字内容（不变） -->
+        <div class="top" id="top">
+            <div class="content">
+                <p>绯弹的亚莉亚(绯弹的亚里亚)
+
+
+作者：赤松中学
+
+
+
+
+
+第一卷 序
+
+第三十四卷 早天的响导舰 插图
+雷神岛
+肯德基大家记得记得你
+打开电脑决定降低大家记得你的女神都记得记得就记得记得记得就记得记得
+大家都很好大家都好的博大精深很深刻
+大家记得记得记得记得就快点看到可口可乐可看到肯德基大家记得记得记得就可看到挤地铁居然居然居然居然科技呜呜呜呜
+记得记得就记得把第四十五是我嗯你继续记得境内北部嗯嗯看到你大家记得记得肯德基等你呢么你就发
+滴滴很深
+代扣代缴你的那份烤地瓜格策
+
+
+
+
+
+</p>
+            </div>
+        </div>
+
+        <!-- 下半部分：图片浏览（可缩放） -->
+        <div class="bottom" id="bottom">
+            <div class="image-container" id="image-container-bottom"></div>
+        </div>
+    </div>
+
+    <!-- 下半部分图片缩放滑块 -->
+    <div class="slider-container slider-bottom hidden" id="slider-container">
+        <input type="range" min="100" max="150" value="100" class="slider" id="slider-bottom">
+    </div>
+
+    <script>
+        let lockedScrollRatioBottom = null;
+
+        // 监听页面加载，恢复滚动位置和缩放级别
+        window.onload = function() {
+            document.getElementById('top').scrollTop = localStorage.getItem('topScroll') || 0;
+            document.getElementById('bottom').scrollTop = localStorage.getItem('bottomScroll') || 0;
+
+            document.getElementById('slider-bottom').value = localStorage.getItem('sliderBottomValue') || 125;
+
+            updateImageTransform();
+            
+            // 恢复滑块的显示/隐藏状态
+            const slidersHidden = localStorage.getItem('slidersHidden') === 'true';
+            if (slidersHidden) {
+                document.getElementById('slider-container').classList.add('hidden');
+            }
+        };
+
+        // 监听滚动并存储滚动位置
+        document.getElementById('top').onscroll = function() {
+            localStorage.setItem('topScroll', this.scrollTop);
+        };
+
+        document.getElementById('bottom').onscroll = function() {
+            localStorage.setItem('bottomScroll', this.scrollTop);
+        };
+
+        // 调整图片大小
+        function updateImageTransform() {
+            const width = window.innerWidth;
+            const images = document.querySelectorAll('.image');
+            const imageWidth = (document.getElementById('slider-bottom').value / 100) * width;
+
+            images.forEach(image => {
+                image.style.width = `${imageWidth}px`;
+            });
+
+            if (lockedScrollRatioBottom !== null) {
+                requestAnimationFrame(() => {
+                    document.getElementById('bottom').scrollTop = lockedScrollRatioBottom * 
+                        (document.getElementById('bottom').scrollHeight - document.getElementById('bottom').clientHeight);
+                });
+            }
+        }
+
+        function lockScrollRatio() {
+            const scrollContainer = document.getElementById('bottom');
+            lockedScrollRatioBottom = (scrollContainer.scrollTop / (scrollContainer.scrollHeight - scrollContainer.clientHeight)).toFixed(4);
+        }
+
+        function unlockScrollRatio() {
+            lockedScrollRatioBottom = null;
+        }
+
+        document.getElementById('slider-bottom').addEventListener('touchstart', lockScrollRatio);
+        document.getElementById('slider-bottom').addEventListener('input', function() {
+            localStorage.setItem('sliderBottomValue', this.value);
+            updateImageTransform();
+        });
+        document.getElementById('slider-bottom').addEventListener('touchend', unlockScrollRatio);
+
+        // 动态生成下半部分图片列表
+        function createImages(container, prefix, count) {
+            for (let i = 1; i <= count; i++) {
+                const img = document.createElement('img');
+                img.src = `${prefix}-${i}.jpeg`;
+                img.alt = `Image ${i}`;
+                img.className = 'image';
+                container.appendChild(img);
+            }
+        }
+
+        createImages(document.getElementById('image-container-bottom'), 'Hidan no Aria vol.05', 264);
+
+        // 五指长按 5 秒隐藏/显示滑块
+        let touchStartTime = null;
+        let touchCount = 0;
+        let touchTimer = null;
+
+        function handleTouchStart(event) {
+            touchCount = event.touches.length;
+
+            if (touchCount === 5 && !touchStartTime) {
+                touchStartTime = Date.now();
+                touchTimer = setTimeout(() => {
+                    toggleSliders();
+                }, 5000);
+            }
+        }
+
+        function handleTouchEnd() {
+            if (touchCount === 5 && touchStartTime) {
+                clearTimeout(touchTimer);
+                touchStartTime = null;
+            }
+        }
+
+        function toggleSliders() {
+            const sliderContainer = document.getElementById('slider-container');
+            sliderContainer.classList.toggle('hidden');
+
+            localStorage.setItem('slidersHidden', sliderContainer.classList.contains('hidden'));
+        }
+
+        document.body.addEventListener('touchstart', handleTouchStart);
+        document.body.addEventListener('touchend', handleTouchEnd);
+    </script>
+</body>
+</html>
