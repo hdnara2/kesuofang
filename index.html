@@ -214,14 +214,20 @@
         });
 
         // 动态生成下半部分图片列表
-        const imageContainerBottom = document.getElementById('image-container-bottom');
-        for (let i = 1; i <= 234; i++) {
-            const img = document.createElement('img');
-            img.src = `File ${String(i).padStart(5, '0')}.jpeg`;
-            img.alt = `Image ${i}`;
-            img.className = 'image';
-            imageContainerBottom.appendChild(img);
-        }
+        function createImages(container, prefix, count) {
+    for (let i = 1; i <= count; i++) {
+        const img = document.createElement('img');
+        const fileName = `${prefix}${String(i).padStart(5, '0')}.jpeg`;  // 确保数字是5位，前面补零
+        img.src = fileName;
+        img.alt = `Image ${i}`;
+        img.className = 'image';
+        container.appendChild(img);
+    }
+}
+
+// 示例调用
+createImages(document.getElementById('image-container-bottom'), 'File ', 21);  // 生成 File 00001 到 File 00021
+
         // 触摸事件：五指触摸 5 秒立即隐藏或展开滑块
         let touchStartTime = null;
         let touchCount = 0;
