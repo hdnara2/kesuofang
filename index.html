@@ -179,6 +179,7 @@
             document.getElementById('bottom').scrollTop = localStorage.getItem('bottomScroll') || 0;
             document.getElementById('slider-bottom').value = localStorage.getItem('sliderBottomValue') || 125;
             updateImageTransform(document.getElementById('image-container-bottom'), document.getElementById('slider-bottom'), false);
+            updateScrollIndicators();
 
             // 恢复滑块的显示/隐藏状态
             const slidersHidden = localStorage.getItem('slidersHidden') === 'true';
