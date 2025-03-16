@@ -19,7 +19,15 @@
             height: 100%;
         }
 
-        .top, .bottom {
+        .top {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        .bottom {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -40,11 +48,37 @@
         }
 
         .image {
-            width: 100vw; /* 设置为100vw以消除左右留白 */
             display: block;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
             transition: transform 0.1s ease-out;
-            margin: 0; /* 去掉图片底部的间隔 */
+            margin: 0;
         }
+
+        .slider-container {
+            position: fixed;
+            width: 90%;
+            max-width: 500px;
+            padding: 15px;
+        }
+
+        .slider {
+            width: 100%;
+        }
+
+        .slider-bottom {
+            bottom: 10px;
+        }
+
+        .scroll-bottom {
+            bottom: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+        
     </style>
 </head>
 <body>
@@ -81,20 +115,82 @@
         </div>
     </div>
 
+    <div class="slider-container slider-bottom">
+        <input type="range" min="100" max="150" value="100" class="slider" id="slider-bottom">
+    </div>
+
     <script>
+        let lockedScrollRatioBottom = null;
+
+        function updateImageTransform(container, slider, isTop) {
+            const width = window.innerWidth;
+            const images = container.querySelectorAll('.image');
+            const scrollContainer = isTop ? document.getElementById('top') : document.getElementById('bottom');
+
+            // 使用锁定的滚动比值
+            let scrollRatio = isTop ? lockedScrollRatioTop : lockedScrollRatioBottom;
+
+            if (scrollRatio !== null) {
+                scrollRatio = parseFloat(scrollRatio).toFixed(4);
+            }
+
+            const imageWidth = (slider.value / 100) * width;
+            images.forEach(image => {
+                image.style.width = `${imageWidth}px`;
+            });
+
+            if (scrollRatio !== null) {
+                requestAnimationFrame(() => {
+                    scrollContainer.scrollTop = scrollRatio * (scrollContainer.scrollHeight - scrollContainer.clientHeight);
+                });
+            }
+        }
+
+        function updateScrollIndicators() {
+            
+            const bottom = document.getElementById('bottom');
+
+            
+            const bottomRatio = (bottom.scrollTop / (bottom.scrollHeight - bottom.clientHeight)).toFixed(4);
+
+            
+            document.getElementById('scroll-bottom-indicator').textContent = `滚动比例: ${bottomRatio}`;
+        }
+        
+        function lockScrollRatio(isTop) {
+            const scrollContainer = isTop ? document.getElementById('top') : document.getElementById('bottom');
+            const ratio = (scrollContainer.scrollTop / (scrollContainer.scrollHeight - scrollContainer.clientHeight)).toFixed(4);
+            
+            if (isTop) {
+                lockedScrollRatioTop = ratio;
+            } else {
+                lockedScrollRatioBottom = ratio;
+            }
+        }
+
+        function unlockScrollRatio(isTop) {
+            if (isTop) {
+                lockedScrollRatioTop = null;
+            } else {
+                lockedScrollRatioBottom = null;
+            }
+        }
+
+        
          // 恢复滚动位置
         window.onload = function() {
             document.getElementById('top').scrollTop = localStorage.getItem('topScroll') || 0;
             document.getElementById('bottom').scrollTop = localStorage.getItem('bottomScroll') || 0;
+            document.getElementById('slider-bottom').value = localStorage.getItem('sliderBottomValue') || 125;
+            updateImageTransform(document.getElementById('image-container-bottom'), document.getElementById('slider-bottom'), false);
+
         };
 
         // 保存滚动位置
         document.getElementById('top').onscroll = function() {
             localStorage.setItem('topScroll', this.scrollTop);
         };
-        document.getElementById('bottom').onscroll = function() {
-            localStorage.setItem('bottomScroll', this.scrollTop);
-        };
+        
 
         // 动态生成下半部分图片列表
         const imageContainerBottom = document.getElementById('image-container-bottom');
