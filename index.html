@@ -262,19 +262,13 @@
         document.body.addEventListener('touchmove', handleTouchStart); // 触摸移动时保持计时
 
         // 禁用滑块轨道点击事件，强制用户拖动滑块
-        document.getElementById('slider-top').addEventListener('click', function(event) {
-            event.preventDefault();
-        });
+        
 
         document.getElementById('slider-bottom').addEventListener('click', function(event) {
             event.preventDefault();
         });
 
         // 禁用轨道点击事件，强制用户拖动滑块
-        document.getElementById('slider-top').addEventListener('mousedown', function(event) {
-            // 仅允许拖动滑块，不允许点击轨道
-            event.preventDefault();
-        });
 
         document.getElementById('slider-bottom').addEventListener('mousedown', function(event) {
             // 仅允许拖动滑块，不允许点击轨道
