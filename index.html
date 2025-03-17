@@ -175,7 +175,7 @@
          // 恢复滚动位置
         window.onload = function() {
             document.getElementById('top').scrollTop = localStorage.getItem('topScroll') || 0;
-            document.getElementById('bottom').scrollTop = localStorage.getItem('bottomScrolll') || 0;
+            document.getElementById('bottom').scrollTop = localStorage.getItem('bottomScroll') || 0;
             document.getElementById('slider-bottom').value = localStorage.getItem('sliderBottomValue') || 125;
             updateImageTransform(document.getElementById('image-container-bottom'), document.getElementById('slider-bottom'), false);
             updateScrollIndicators();
@@ -194,7 +194,7 @@
             localStorage.setItem('topScroll', this.scrollTop);
         };
         document.getElementById('bottom').onscroll = function() {
-            localStorage.setItem('bottomScrolll', this.scrollTop);
+            localStorage.setItem('bottomScroll', this.scrollTop);
             updateScrollIndicators();
         };
         document.getElementById('slider-bottom').addEventListener('touchstart', function() {
